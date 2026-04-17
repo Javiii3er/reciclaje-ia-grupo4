@@ -1,4 +1,4 @@
-# ♻️ Reciclaje Inteligente — Clasificación de Desechos con Visión Artificial
+#  Reciclaje Inteligente — Clasificación de Desechos con Visión Artificial
 
 > Proyecto 01 — Curso 045: Inteligencia Artificial  
 > Universidad Mariano Gálvez de Guatemala · Facultad de Ingeniería  
@@ -6,7 +6,7 @@
 
 ---
 
-## 📋 Información del Curso
+##  Información del Curso
 
 | Campo | Detalle |
 |-------|---------|
@@ -19,7 +19,7 @@
 
 ---
 
-## 👥 Integrantes del Equipo
+##  Integrantes del Equipo
 
 | Nombre | Carné | Rol | Clave funcional |
 |--------|-------|-----|-----------------|
@@ -31,22 +31,22 @@
 
 ---
 
-## 📌 Descripción del Proyecto
+##  Descripción del Proyecto
 
 Sistema de inteligencia artificial capaz de **identificar el tipo de residuo sólido** a partir de una fotografía tomada por cámara o cargada por el usuario. El sistema devuelve:
 
-- ✅ Clase del residuo detectado (ej. `botella_pet`, `lata`, `papel`)
-- 🗑️ Color de recipiente donde debe depositarse
-- 📊 Nivel de confianza del modelo (%)
-- 💡 Consejo práctico de manejo
+-  Clase del residuo detectado (ej. `botella_pet`, `lata`, `papel`)
+-  Color de recipiente donde debe depositarse
+-  Nivel de confianza del modelo (%)
+-  Consejo práctico de manejo
 
 El modelo está construido con **Transfer Learning sobre MobileNetV2** preentrenado en ImageNet, fine-tuned para 10 clases de residuos comunes en el contexto guatemalteco.
 
-> ⚠️ **Disclaimer ético:** Este sistema es una herramienta de apoyo educativo. Las recomendaciones son orientativas y pueden variar según el municipio. No reemplaza las normativas locales de reciclaje.
+>  **Disclaimer ético:** Este sistema es una herramienta de apoyo educativo. Las recomendaciones son orientativas y pueden variar según el municipio. No reemplaza las normativas locales de reciclaje.
 
 ---
 
-## 🗂️ Clases del modelo
+##  Clases del modelo
 
 | Clase | Categoría | Recipiente | Consejo |
 |-------|-----------|------------|---------|
@@ -63,7 +63,7 @@ El modelo está construido con **Transfer Learning sobre MobileNetV2** preentren
 
 ---
 
-## 🛠️ Tecnologías utilizadas
+##  Tecnologías utilizadas
 
 - **Python** 3.10+
 - **PyTorch** + **TorchVision** — modelo MobileNetV2 y entrenamiento
@@ -77,7 +77,7 @@ El modelo está construido con **Transfer Learning sobre MobileNetV2** preentren
 
 ---
 
-## ⚙️ Instalación y ejecución
+##  Instalación y ejecución
 
 ### Requisitos previos
 - Python 3.10 o superior
@@ -108,7 +108,7 @@ streamlit run app/app.py
 
 ---
 
-## 📁 Estructura del repositorio
+##  Estructura del repositorio
 
 ```
 reciclaje-inteligente/
@@ -146,11 +146,11 @@ reciclaje-inteligente/
     └── demo_video_link.txt     ← Enlace al video de demostración
 ```
 
-> 📦 **Nota sobre el modelo:** Si el archivo `.pth` supera 25 MB, se almacena en Google Drive. El enlace de descarga se publicará aquí una vez completado el entrenamiento.
+>  **Nota sobre el modelo:** Si el archivo `.pth` supera 25 MB, se almacena en Google Drive. El enlace de descarga se publicará aquí una vez completado el entrenamiento.
 
 ---
 
-## 📊 Resultados del modelo
+##  Resultados del modelo
 
 > *Esta sección se actualizará al completar el entrenamiento (Semana 3 — mayo 2026).*
 
@@ -162,22 +162,22 @@ reciclaje-inteligente/
 
 ---
 
-## 🗓️ Hitos del proyecto
+##  Hitos del proyecto
 
 | Hito | Fecha |
 |------|-------|
-| ⭐ Expoferia — Demo funcional en vivo | 16 de mayo de 2026 |
-| 🎓 Entrega final — Repositorio completo tag v1.0 | 30 de mayo de 2026 |
+|  Expoferia — Demo funcional en vivo | 16 de mayo de 2026 |
+|  Entrega final — Repositorio completo tag v1.0 | 30 de mayo de 2026 |
 
 ---
 
-## 🎥 Video de demostración
+##  Video de demostración
 
 > *Enlace disponible próximamente — semana del 25 al 29 de mayo de 2026.*
 
 ---
 
-## 📄 Convención de commits
+##  Convención de commits
 
 | Prefijo | Uso |
 |---------|-----|
