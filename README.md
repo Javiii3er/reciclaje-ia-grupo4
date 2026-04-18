@@ -11,7 +11,7 @@
 | Campo | Detalle |
 |-------|---------|
 | **Universidad** | Universidad Mariano Gálvez de Guatemala |
-| **Facultad** | Ingeniería, Matemática y Ciencias Físicas |
+| **Facultad** | Ingenieríaen Sistemas de Información y Ciencias de la Computación |
 | **Curso** | 045 — Inteligencia Artificial |
 | **Catedrático** | Ing. MA. Carmelo Estuardo Mayén Monterroso |
 | **Grupo** | #4 |
