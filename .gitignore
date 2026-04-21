@@ -18,8 +18,13 @@ models/*.joblib
 # Datos crudos pesados (documentar fuente en data/README.md)
 data/raw/
 data/processed/
+data/tmp/
 !data/raw/.gitkeep
 !data/processed/.gitkeep
+
+# Tokens y archivos sensibles
+app/Tokenkaggle.txt
+kaggle.json
 
 # Jupyter
 .ipynb_checkpoints/
