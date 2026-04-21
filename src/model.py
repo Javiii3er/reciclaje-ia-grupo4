@@ -40,31 +40,39 @@ DISCLAIMER = (
 )
 
 
-def load_model(path: str = 'models/modelo_reciclaje.pth') -> torch.nn.Module:
+def load_model(path: str = 'models/modelo_reciclaje.pth', n_classes: int = None) -> torch.nn.Module:
     """
     Carga el modelo MobileNetV2 con los pesos entrenados.
 
     Args:
         path: Ruta al archivo .pth con los pesos del modelo entrenado.
+        n_classes: Número de clases. Si es None, usa len(CLASSES).
 
     Returns:
         Modelo en modo evaluación listo para inferencia.
     """
+    if n_classes is None:
+        n_classes = len(CLASSES)
     model = models.mobilenet_v2(weights=None)
-    model.classifier[1] = torch.nn.Linear(1280, len(CLASSES))
+    model.classifier[1] = torch.nn.Linear(1280, n_classes)
     model.load_state_dict(torch.load(path, map_location='cpu'))
     model.eval()
     return model
 
 
-def build_model() -> torch.nn.Module:
+def build_model(n_classes: int = None) -> torch.nn.Module:
     """
     Construye el modelo MobileNetV2 con pesos preentrenados de ImageNet
     para Transfer Learning (usar durante el entrenamiento).
 
+    Args:
+        n_classes: Número de clases de salida. Si es None, usa len(CLASSES).
+
     Returns:
         Modelo con base congelada y clasificador reemplazado.
     """
+    if n_classes is None:
+        n_classes = len(CLASSES)
     model = models.mobilenet_v2(weights=models.MobileNet_V2_Weights.IMAGENET1K_V1)
 
     # Congelar todas las capas base (Fase 1)
@@ -72,7 +80,7 @@ def build_model() -> torch.nn.Module:
         param.requires_grad = False
 
     # Reemplazar clasificador final con el número de clases del proyecto
-    model.classifier[1] = torch.nn.Linear(1280, len(CLASSES))
+    model.classifier[1] = torch.nn.Linear(1280, n_classes)
 
     return model
 
