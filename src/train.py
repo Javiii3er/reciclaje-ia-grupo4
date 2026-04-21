@@ -86,13 +86,19 @@ def main(args):
     print(f"Clases detectadas: {train_ds.classes}")
     print(f"Imágenes train: {len(train_ds)} | val: {len(val_ds)}")
 
+    # Usar las clases realmente presentes en el dataset (ImageFolder detecta automáticamente)
+    n_clases = len(train_ds.classes)
+    print(f"Clases con datos: {train_ds.classes} ({n_clases} clases)")
+
     # ── Modelo ────────────────────────────────────────────────────────────────
-    model = build_model().to(device)
+    model = build_model(n_classes=n_clases).to(device)
 
     # Pesos por clase para manejar desbalance
-    class_counts = [train_ds.targets.count(i) for i in range(len(CLASSES))]
+    # Usar las clases realmente presentes en el dataset (ImageFolder detecta automáticamente)
+    n_clases = len(train_ds.classes)
+    class_counts = [train_ds.targets.count(i) for i in range(n_clases)]
     total = sum(class_counts)
-    weights = torch.tensor([total / (len(CLASSES) * c) for c in class_counts]).to(device)
+    weights = torch.tensor([total / (n_clases * max(c, 1)) for c in class_counts]).to(device)
     criterion = nn.CrossEntropyLoss(weight=weights)
 
     history = {'train_loss': [], 'val_loss': [], 'train_acc': [], 'val_acc': []}

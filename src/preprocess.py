@@ -14,17 +14,16 @@ IMAGE_SIZE    = 224
 def get_train_transforms() -> transforms.Compose:
     """
     Transformaciones para el conjunto de entrenamiento.
-    Incluye augmentation para reducir overfitting.
-
-    Returns:
-        Pipeline de transformaciones para imágenes de entrenamiento.
+    Optimizado para ROBÓTICA: Incluye simulación de desenfoque y ruido de sensor.
     """
     return transforms.Compose([
         transforms.Resize((IMAGE_SIZE + 32, IMAGE_SIZE + 32)),
         transforms.RandomCrop(IMAGE_SIZE),
         transforms.RandomHorizontalFlip(p=0.5),
-        transforms.RandomRotation(degrees=15),
-        transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.2),
+        transforms.RandomRotation(degrees=20),
+        transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.3, hue=0.1),
+        transforms.RandomGrayscale(p=0.1),
+        transforms.GaussianBlur(kernel_size=(3, 7), sigma=(0.1, 2.0)), # Simular desenfoque
         transforms.ToTensor(),
         transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD),
     ])
