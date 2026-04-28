@@ -8,3 +8,5 @@ matplotlib==3.8.4
 seaborn==0.13.2
 opencv-python==4.9.0.80
 albumentations==1.4.3
+streamlit-webrtc
+av

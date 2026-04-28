@@ -8,16 +8,16 @@ from torchvision import models
 
 # ── Clases del modelo ────────────────────────────────────────────────────────
 CLASSES = [
-    'lata',
+    'bolsa_plastica',
     'botella_pet',
     'botella_vidrio',
-    'papel',
     'carton',
-    'bolsa_plastica',
-    'tetrapak',
-    'organico',
     'electronicos_pequenos',
+    'lata',
     'no_reciclable',
+    'organico',
+    'papel',
+    'tetrapak',
 ]
 
 # ── Mapeo clase → (categoría, color_recipiente, emoji, consejo) ──────────────
@@ -42,20 +42,21 @@ DISCLAIMER = (
 
 def load_model(path: str = 'models/modelo_reciclaje.pth', n_classes: int = None) -> torch.nn.Module:
     """
-    Carga el modelo MobileNetV2 con los pesos entrenados.
-
-    Args:
-        path: Ruta al archivo .pth con los pesos del modelo entrenado.
-        n_classes: Número de clases. Si es None, usa len(CLASSES).
-
-    Returns:
-        Modelo en modo evaluación listo para inferencia.
+    Carga el modelo MobileNetV2 detectando automáticamente el número de clases
+    desde el archivo de pesos para evitar errores de mismatch.
     """
+    checkpoint = torch.load(path, map_location='cpu', weights_only=True)
+    
+    # Detectar n_classes desde la capa de clasificación (classifier.1.weight)
     if n_classes is None:
-        n_classes = len(CLASSES)
+        if 'classifier.1.weight' in checkpoint:
+            n_classes = checkpoint['classifier.1.weight'].shape[0]
+        else:
+            n_classes = len(CLASSES)
+            
     model = models.mobilenet_v2(weights=None)
     model.classifier[1] = torch.nn.Linear(1280, n_classes)
-    model.load_state_dict(torch.load(path, map_location='cpu'))
+    model.load_state_dict(checkpoint)
     model.eval()
     return model
 
