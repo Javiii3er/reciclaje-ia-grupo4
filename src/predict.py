@@ -1,5 +1,5 @@
 """
-predict.py — Función de predicción/inferencia para la app Streamlit.
+predict.py — Inferencia ultra-estable optimizada para GPU.
 Proyecto 01: Reciclaje Inteligente · Grupo #4 · UMG 2026
 """
 
@@ -13,25 +13,21 @@ from preprocess import get_inference_transforms
 
 def predict_top3(
     image: Image.Image,
-    model_path: str = 'models/modelo_reciclaje.pth'
+    model_path: str = 'models/modelo_reciclaje.pth',
+    model: torch.nn.Module = None
 ) -> Tuple[List[dict], str]:
     """
-    Realiza la predicción sobre una imagen PIL y retorna las 3 clases más probables.
-
-    Args:
-        image: Imagen PIL cargada (RGB).
-        model_path: Ruta al modelo entrenado.
-
-    Returns:
-        Tuple con:
-        - Lista de dicts con top-3 predicciones (clase, confianza, info del recipiente).
-        - Disclaimer ético del sistema.
+    Predicción optimizada para imágenes estáticas.
     """
-    model = load_model(model_path)
+    if model is None:
+        model = load_model(model_path)
+    
+    # Detectar el dispositivo en el que ya está el modelo
+    device = next(model.parameters()).device
+    
     transform = get_inference_transforms()
-
     img_rgb = image.convert('RGB')
-    tensor = transform(img_rgb).unsqueeze(0)
+    tensor = transform(img_rgb).unsqueeze(0).to(device)
 
     with torch.no_grad():
         logits = model(tensor)
@@ -53,3 +49,34 @@ def predict_top3(
         })
 
     return results, DISCLAIMER
+
+
+def predict_frame(
+    image: Image.Image,
+    model: torch.nn.Module
+) -> dict:
+    """
+    Predicción de alta velocidad para cuadros de video.
+    Asume que el modelo ya está en el dispositivo correcto (GPU/CPU).
+    """
+    # Detectar dispositivo automáticamente
+    device = next(model.parameters()).device
+    
+    transform = get_inference_transforms()
+    img_rgb = image.convert('RGB')
+    tensor = transform(img_rgb).unsqueeze(0).to(device)
+
+    with torch.no_grad():
+        logits = model(tensor)
+        probs = torch.softmax(logits, dim=1)[0]
+        prob, idx = torch.max(probs, dim=0)
+
+    class_name = CLASSES[idx.item()]
+    info = get_prediction_info(class_name)
+    
+    return {
+        'clase':      class_name,
+        'confianza':  round(prob.item() * 100, 1),
+        'emoji':      info['emoji'],
+        'color':      info['color'],
+    }
