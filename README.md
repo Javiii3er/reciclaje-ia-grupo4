@@ -1,7 +1,7 @@
-#  Reciclaje Inteligente — Clasificación de Desechos con Visión Artificial
+# EcoRecicla IA — Clasificación de Desechos con Visión Artificial
 
-> Proyecto 01 — Curso 045: Inteligencia Artificial  
-> Universidad Mariano Gálvez de Guatemala · Facultad de Ingeniería  
+> Proyecto 01 — Curso 045: Inteligencia Artificial
+> Universidad Mariano Gálvez de Guatemala · Facultad de Ingeniería
 > Grupo #4 · Ciclo 2026
 
 ---
@@ -33,16 +33,41 @@
 
 ##  Descripción del Proyecto
 
-Sistema de inteligencia artificial capaz de **identificar el tipo de residuo sólido** a partir de una fotografía tomada por cámara o cargada por el usuario. El sistema devuelve:
+**EcoRecicla IA** es un sistema de inteligencia artificial capaz de **identificar el tipo de residuo sólido** a partir de una fotografía tomada por cámara, capturada en video en tiempo real o cargada como archivo. El sistema devuelve:
 
 -  Clase del residuo detectado (ej. `botella_pet`, `lata`, `papel`)
 -  Color de recipiente donde debe depositarse
 -  Nivel de confianza del modelo (%)
 -  Consejo práctico de manejo
+-  Alerta de duda cuando la confianza es menor al 70%
 
-El modelo está construido con **Transfer Learning sobre MobileNetV2** preentrenado en ImageNet, fine-tuned para 10 clases de residuos comunes en el contexto guatemalteco.
+El modelo está construido con **Transfer Learning sobre MobileNetV2** preentrenado en ImageNet, fine-tuned para 10 clases de residuos del contexto guatemalteco, alcanzando un **99.44% de accuracy global**.
 
->  **Disclaimer ético:** Este sistema es una herramienta de apoyo educativo. Las recomendaciones son orientativas y pueden variar según el municipio. No reemplaza las normativas locales de reciclaje.
+>  **Disclaimer ético:** Este sistema es una herramienta de apoyo educativo. Las recomendaciones son orientativas y pueden variar según las normativas de reciclaje de cada municipio. No reemplaza la consulta de normativas locales.
+
+---
+
+##  Resultados del Modelo
+
+| Métrica | Valor | Descripción |
+|---------|-------|-------------|
+| **Accuracy global** | **99.44%** | Imágenes correctamente clasificadas en el conjunto de prueba |
+| **Top-2 Accuracy** | **99.86%** | La clase correcta está entre las 2 más probables |
+| **Confianza media** | **99.68%** | El modelo es muy seguro en sus predicciones |
+| **Baseline (referencia)** | 27.66% | Accuracy de un modelo que adivina al azar |
+| **Mejora sobre baseline** | +71.78 pp | El modelo es 71.78 puntos porcentuales mejor que adivinar |
+
+###  Análisis de errores de confusión
+
+El modelo es altamente preciso, pero presenta 3 errores recurrentes en el conjunto de prueba:
+
+| # | Clase real | Confundida con | Veces | Razón |
+|---|-----------|----------------|-------|-------|
+| 1 | `papel` | `carton` | 8 | Similitud de textura en imágenes planas |
+| 2 | `no_reciclable` | `papel` | 7 | Materiales de apariencia similar |
+| 3 | `botella_pet` | `botella_vidrio` | 6 | Transparencia similar en ciertas condiciones de luz |
+
+> Estos casos están documentados en el Informe PDF final y son la base del análisis de errores del proyecto.
 
 ---
 
@@ -63,17 +88,32 @@ El modelo está construido con **Transfer Learning sobre MobileNetV2** preentren
 
 ---
 
+##  Modos de la aplicación
+
+La app **EcoRecicla IA** cuenta con tres modos de entrada:
+
+| Modo | Descripción |
+|------|-------------|
+|  **Foto instantánea** | Captura desde la cámara web del dispositivo |
+|  **Video en tiempo real** | Stream continuo con OpenCV — predicción cada 20 fotogramas |
+|  **Archivo** | Carga de imagen (JPG/PNG) o video (MP4/AVI/MOV) |
+
+---
+
 ##  Tecnologías utilizadas
 
-- **Python** 3.10+
-- **PyTorch** + **TorchVision** — modelo MobileNetV2 y entrenamiento
-- **Streamlit** — interfaz web interactiva
-- **Pillow** — carga y manipulación de imágenes
-- **NumPy** — operaciones matriciales
-- **scikit-learn** — métricas de evaluación (F1-macro, matriz de confusión)
-- **Matplotlib** + **Seaborn** — visualización de métricas
-- **OpenCV** — preprocesamiento y captura desde cámara
-- **Albumentations** — data augmentation avanzado
+| Librería | Versión | Uso |
+|----------|---------|-----|
+| `torch` | 2.2.2 | Entrenamiento y carga del modelo MobileNetV2 |
+| `torchvision` | 0.17.2 | Transformaciones de imagen y modelos preentrenados |
+| `streamlit` | 1.33.0 | Interfaz web interactiva |
+| `Pillow` | 10.3.0 | Carga y manipulación de imágenes |
+| `numpy` | 1.26.4 | Operaciones matriciales |
+| `scikit-learn` | 1.4.2 | Métricas de evaluación (F1-macro, matriz de confusión) |
+| `matplotlib` | 3.8.4 | Gráficas de entrenamiento |
+| `seaborn` | 0.13.2 | Heatmap de matriz de confusión |
+| `opencv-python` | 4.9.0.80 | Preprocesamiento y video en tiempo real |
+| `albumentations` | 1.4.3 | Data augmentation avanzado |
 
 ---
 
@@ -82,21 +122,22 @@ El modelo está construido con **Transfer Learning sobre MobileNetV2** preentren
 ### Requisitos previos
 - Python 3.10 o superior
 - Git
+- Cámara web (para modos foto y video)
 
 ### Pasos
 
 ```bash
 # 1. Clonar el repositorio
-git clone https://github.com/TU_USUARIO/reciclaje-inteligente.git
-cd reciclaje-inteligente
+git clone https://github.com/TU_USUARIO/reciclaje-ia-grupo4.git
+cd reciclaje-ia-grupo4
 
 # 2. Crear entorno virtual
 python -m venv venv
 
 # 3. Activar entorno virtual
-# En Windows:
+# Windows:
 .\venv\Scripts\activate
-# En Linux / Mac:
+# Linux / Mac:
 source venv/bin/activate
 
 # 4. Instalar dependencias
@@ -106,74 +147,62 @@ pip install -r requirements.txt
 streamlit run app/app.py
 ```
 
+>  **Nota sobre el modelo:** El archivo `models/modelo_reciclaje.pth` debe estar en la carpeta `models/`. Si supera 25 MB se almacena en Google Drive — ver enlace abajo.
+
 ---
 
 ##  Estructura del repositorio
 
 ```
-reciclaje-inteligente/
-├── README.md                   ← Este archivo
-├── requirements.txt            ← Dependencias con versiones exactas
-├── .gitignore                  ← Archivos excluidos del repositorio
+reciclaje-ia-grupo4/
+├── README.md                       ← Este archivo
+├── requirements.txt                ← Dependencias con versiones exactas
+├── .gitignore
+├── download_datasets.py            ← Descarga automática de datasets públicos
 │
 ├── data/
-│   ├── raw/                    ← Dataset original sin modificar
-│   ├── processed/              ← Dataset tras preprocesamiento
-│   └── README.md               ← Fuentes, licencias y descripción del dataset
+│   ├── raw/                        ← Dataset organizado por clase
+│   ├── processed/                  ← Splits train/val/test (70/15/15)
+│   └── README.md                   ← Fuentes, licencias y distribución
 │
 ├── notebooks/
-│   ├── 01_EDA.ipynb            ← Análisis exploratorio de datos
-│   ├── 02_train.ipynb          ← Entrenamiento del modelo
-│   └── 03_evaluation.ipynb     ← Evaluación, métricas y matriz de confusión
+│   ├── 01_EDA.ipynb                ← Análisis exploratorio con resultados
+│   ├── 02_train.ipynb              ← Entrenamiento con curva de aprendizaje
+│   └── 03_evaluation.ipynb         ← Métricas finales y matriz de confusión
 │
 ├── src/
-│   ├── preprocess.py           ← Funciones de preprocesamiento
-│   ├── model.py                ← Definición, carga del modelo y COLOR_MAP
-│   ├── train.py                ← Script de entrenamiento
-│   └── predict.py              ← Función de predicción/inferencia
+│   ├── model.py                    ← MobileNetV2 y COLOR_MAP (10 clases)
+│   ├── preprocess.py               ← Transformaciones e augmentation
+│   ├── train.py                    ← Entrenamiento con Early Stopping
+│   ├── evaluate.py                 ← Evaluación y generación de métricas
+│   ├── predict.py                  ← Inferencia top-3 y tiempo real
+│   └── split_dataset.py            ← Split estratificado 70/15/15
 │
 ├── app/
-│   └── app.py                  ← Interfaz Streamlit
+│   └── app.py                      ← EcoRecicla IA — Interfaz Streamlit
 │
-├── models/                     ← Modelo entrenado (.pth) — ver nota abajo
+├── models/
+│   └── modelo_reciclaje.pth        ← Modelo entrenado (ver nota arriba)
 │
 └── docs/
-    ├── minutas/                ← Minutas de reuniones semanales
-    ├── manual_tecnico.pdf      ← Manual técnico del sistema
-    ├── manual_usuario.pdf      ← Manual de usuario
-    ├── DERCAS.pdf              ← Análisis y diseño del sistema
-    ├── informe_final.pdf       ← Informe final con métricas
-    └── demo_video_link.txt     ← Enlace al video de demostración
+    ├── curva_aprendizaje.png        ← Curva loss/accuracy por época
+    ├── matriz_confusion.png         ← Heatmap de matriz de confusión
+    ├── minutas/                     ← Minutas de reuniones semanales
+    ├── manual_tecnico.pdf           ← Manual técnico del sistema
+    ├── manual_usuario.pdf           ← Manual de usuario
+    ├── DERCAS.pdf                   ← Análisis y diseño del sistema
+    ├── informe_final.pdf            ← Informe final con métricas
+    └── demo_video_link.txt          ← Enlace al video de demostración
 ```
-
->  **Nota sobre el modelo:** Si el archivo `.pth` supera 25 MB, se almacena en Google Drive. El enlace de descarga se publicará aquí una vez completado el entrenamiento.
-
----
-
-##  Resultados del modelo
-
-> *Esta sección se actualizará al completar el entrenamiento (Semana 3 — mayo 2026).*
-
-| Métrica | Valor |
-|---------|-------|
-| Accuracy global | — |
-| F1-macro | — |
-| Top-2 Accuracy | — |
 
 ---
 
 ##  Hitos del proyecto
 
-| Hito | Fecha |
-|------|-------|
-|  Expoferia — Demo funcional en vivo | 16 de mayo de 2026 |
-|  Entrega final — Repositorio completo tag v1.0 | 30 de mayo de 2026 |
-
----
-
-##  Video de demostración
-
-> *Enlace disponible próximamente — semana del 25 al 29 de mayo de 2026.*
+| Hito | Fecha | Estado |
+|------|-------|--------|
+|  Expoferia — Demo funcional en vivo | 16 de mayo de 2026 | 🟡 Próximo |
+|  Entrega final — Repositorio con tag v1.0 | 30 de mayo de 2026 | ⏳ Pendiente |
 
 ---
 
@@ -188,3 +217,13 @@ reciclaje-inteligente/
 | `train:` | Entrenamiento del modelo |
 | `app:` | Interfaz Streamlit |
 | `eval:` | Evaluación y métricas |
+
+---
+
+##  Video de demostración
+
+> Enlace disponible la semana del 25 al 29 de mayo de 2026.
+
+---
+
+*Grupo #4 · Proyecto 01 — Reciclaje Inteligente · Curso 045 Inteligencia Artificial · UMG 2026*
