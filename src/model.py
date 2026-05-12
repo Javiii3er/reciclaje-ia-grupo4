@@ -20,16 +20,17 @@ CLASSES = [
     'tetrapak',
 ]
 
-# ── Mapeo clase → (categoría, color_recipiente, emoji, consejo) ──────────────
+# Colores alineados con AGG 164-2021 y Reforma AGG 184-2023 (MARN Guatemala)
+# Última actualización: 11 de mayo de 2026
 COLOR_MAP = {
-    'lata':                 ('Metal',       'Amarillo', '🟡', 'Enjuagar y aplastar antes de depositar.'),
+    'lata':                 ('Metal',       'Gris',     '⚫', 'Enjuagar y aplastar antes de depositar.'),
     'botella_pet':          ('Plástico',    'Azul',     '🔵', 'Quitar el tapón y aplastar la botella.'),
-    'botella_vidrio':       ('Vidrio',      'Verde',    '🟢', 'No romper. Depositar entero en el recipiente.'),
-    'papel':                ('Papel',       'Gris',     '⚫', 'Mantener seco y limpio. No mezclar con papel sucio.'),
-    'carton':               ('Papel',       'Gris',     '⚫', 'Doblar y atar si es de gran tamaño.'),
+    'botella_vidrio':       ('Vidrio',      'Celeste',  '🔷', 'No romper. Depositar entero en el recipiente.'),
+    'papel':                ('Papel',       'Amarillo', '🟡', 'Mantener seco y limpio. No mezclar con papel sucio.'),
+    'carton':               ('Papel',       'Amarillo', '🟡', 'Doblar y atar si es de gran tamaño.'),
     'bolsa_plastica':       ('Plástico',    'Azul',     '🔵', 'Vaciar completamente antes de depositar.'),
-    'tetrapak':             ('Mixto',       'Azul',     '🔵', 'Enjuagar, aplastar y retirar la pajilla.'),
-    'organico':             ('Orgánico',    'Café',     '🟤', 'Ideal para compostaje casero o biogás.'),
+    'tetrapak':             ('Mixto',       'Naranja',  '🟠', 'Enjuagar, aplastar y retirar la pajilla.'),
+    'organico':             ('Orgánico',    'Verde',    '🟢', 'Ideal para compostaje casero o biogás.'),
     'electronicos_pequenos':('Electrónico', 'Rojo',     '🔴', 'Llevar a un punto limpio autorizado. No tirar a la basura general.'),
     'no_reciclable':        ('Otros',       'Negro',    '⬛', 'Depositar en la basura general.'),
 }
