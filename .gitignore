@@ -41,6 +41,9 @@ desktop.ini
 *.swp
 *.swo
 
+# Claude Code (configuración local)
+.claude/
+
 # Logs y temporales
 *.log
 *.tmp
