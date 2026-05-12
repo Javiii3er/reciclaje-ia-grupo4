@@ -291,27 +291,6 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# Guía de contenedores — colores correctos según AGG 164-2021
-st.markdown("**🗑️ Contenedores según AGG 164-2021**")
-col_c1, col_c2, col_c3 = st.columns(3)
-with col_c1:
-    st.markdown("""
-    <span class="sidebar-badge badge-amarillo" style="display:block;margin-bottom:0.2rem">🟡 Amarillo — Papel / Cartón</span>
-    <span class="sidebar-badge badge-azul"     style="display:block;margin-bottom:0.2rem">🔵 Azul — Plástico</span>
-    <span class="sidebar-badge badge-celeste"  style="display:block">🔷 Celeste — Vidrio</span>
-    """, unsafe_allow_html=True)
-with col_c2:
-    st.markdown("""
-    <span class="sidebar-badge badge-gris"    style="display:block;margin-bottom:0.2rem">⚫ Gris — Metal</span>
-    <span class="sidebar-badge badge-naranja" style="display:block;margin-bottom:0.2rem">🟠 Naranja — Multicapa (Tetra Pak)</span>
-    <span class="sidebar-badge badge-verde"   style="display:block">🟢 Verde — Orgánicos</span>
-    """, unsafe_allow_html=True)
-with col_c3:
-    st.markdown("""
-    <span class="sidebar-badge badge-negro" style="display:block;margin-bottom:0.2rem">⬛ Negro — No reciclable</span>
-    <span class="sidebar-badge badge-rojo"  style="display:block">🔴 Rojo — Electrónicos</span>
-    """, unsafe_allow_html=True)
-
 st.divider()
 
 # ── HERO ──────────────────────────────────────────────────────────────────────
@@ -341,89 +320,83 @@ st.markdown('<div class="work-panel">', unsafe_allow_html=True)
 # ── MODO CÁMARA ───────────────────────────────────────────────────────────────
 if "CÁMARA" in mode:
     st.markdown("### 📷 Cámara · Captura Instantánea")
-    st.caption("Apunta al objeto y toma la foto. La IA analizará el residuo al instante.")
-    camera_photo = st.camera_input("", label_visibility="collapsed")
-    if camera_photo:
-        img = Image.open(camera_photo)
-        if MODEL is not None:
-            with _INFER_SEM:
-                res, disclaimer = predict_top3(img, model=MODEL)
-            top = res[0]
-            # --- LÓGICA DE UMBRAL DE DUDA (FASE C) ---
-            es_dudoso = top['confianza'] < DOUBT_THRESHOLD
-            titulo_res = f"✅ {top['emoji']} {top['clase'].replace('_',' ').title()}"
-            sub_res    = f"{top['confianza']}%"
-            msg_duda   = ""
-            
-            if es_dudoso and len(res) > 1:
-                alt = res[1]
-                titulo_res = f"🤔 ¿{top['clase'].replace('_',' ').title()}?"
-                sub_res    = "Incertidumbre detectada"
-                msg_duda   = (f"Parece **{top['clase'].replace('_',' ')}**, pero también podría ser "
-                              f"**{alt['clase'].replace('_',' ')}**. ¿Podrías acercar más la cámara?")
+    col_v, col_r = st.columns([1.5, 1])
+    
+    with col_v:
+        st.caption("Apunta al objeto y toma la foto.")
+        camera_photo = st.camera_input("", label_visibility="collapsed")
+    
+    with col_r:
+        if camera_photo:
+            img = Image.open(camera_photo)
+            if MODEL is not None:
+                with _INFER_SEM:
+                    res, disclaimer = predict_top3(img, model=MODEL)
+                top = res[0]
+                # --- LÓGICA DE UMBRAL DE DUDA (FASE C) ---
+                es_dudoso = top['confianza'] < DOUBT_THRESHOLD
+                titulo_res = f"✅ {top['emoji']} {top['clase'].replace('_',' ').title()}"
+                sub_res    = f"{top['confianza']}%"
+                msg_duda   = ""
+                
+                if es_dudoso and len(res) > 1:
+                    alt = res[1]
+                    titulo_res = f"🤔 ¿{top['clase'].replace('_',' ').title()}?"
+                    sub_res    = "Incertidumbre detectada"
+                    msg_duda   = (f"Parece **{top['clase'].replace('_',' ')}**, pero también podría ser "
+                                f"**{alt['clase'].replace('_',' ')}**.")
 
-            # FIX 3: Resultados en dos columnas para reducir altura
-            col_r1, col_r2 = st.columns(2)
-            with col_r1:
                 color_box = "result-top" if not es_dudoso else "result-warn"
                 st.markdown(f"""
 <div class="result-box {color_box}">
-  <h3>{titulo_res}</h3>
-  <p style="color:#f1f5f9;font-weight:700;font-size:1.1rem;margin:0.1rem 0">{sub_res}</p>
-  <div class="confidence-bar-bg"><div class="confidence-bar" style="width:{top['confianza']}%"></div></div>
+    <h3>{titulo_res}</h3>
+    <p style="color:#f1f5f9;font-weight:700;font-size:1.1rem;margin:0.1rem 0">{sub_res}</p>
+    <div class="confidence-bar-bg"><div class="confidence-bar" style="width:{top['confianza']}%"></div></div>
 </div>
-""", unsafe_allow_html=True)
-            with col_r2:
-                if es_dudoso:
-                    st.markdown(f"""
 <div class="result-box result-info">
-  <h3>💡 Recomendación</h3>
-  <p>{msg_duda}</p>
+    <h3>{"💡 Recomendación" if es_dudoso else "🗑️ " + top['color']}</h3>
+    <p>{msg_duda if es_dudoso else top['consejo']}</p>
 </div>
 """, unsafe_allow_html=True)
-                else:
-                    st.markdown(f"""
-<div class="result-box result-info">
-  <h3>🗑️ {top['color']}</h3>
-  <p>{top['consejo']}</p>
-</div>
-""", unsafe_allow_html=True)
-            if len(res) > 1:
-                st.markdown("**🔬 Otras posibilidades:**")
-                cols_alt = st.columns(len(res) - 1)
-                for i, r in enumerate(res[1:]):
-                    cols_alt[i].markdown(f"{r['emoji']} **{r['clase'].replace('_',' ').title()}** — {r['confianza']}%")
-            st.markdown(f'<div class="result-box result-warn"><p>{disclaimer}</p></div>', unsafe_allow_html=True)
+
+                if len(res) > 1:
+                    st.markdown("**🔬 Otras posibilidades:**")
+                    for r in res[1:]:
+                        st.markdown(f"{r['emoji']} **{r['clase'].replace('_',' ').title()}** — {r['confianza']}%")
+                st.markdown(f'<div class="result-box result-warn"><p style="font-size:0.85rem">{disclaimer}</p></div>', unsafe_allow_html=True)
+            else:
+                st.error("⚠️ Modelo no disponible.")
         else:
-            st.error("⚠️ Modelo no disponible.")
+            st.info("Esperando captura...")
 
 # ── MODO VIDEO ────────────────────────────────────────────────────────────────
 elif "VIDEO" in mode:
     st.markdown("### 🎥 Video · Detección en Tiempo Real")
-    st.caption("Cámara nativa OpenCV — sin WebRTC. Presiona **INICIAR** para arrancar el stream con IA.")
+    col_v, col_r = st.columns([1.5, 1])
 
-    st.markdown("#### ⚙️ Configuración")
-    col_fps, col_info = st.columns([2, 1])
-    with col_fps:
-        fps_value = st.slider(
-            "📊 Fotogramas por segundo (FPS)",
-            min_value=10,
-            max_value=60,
-            value=20,
-            step=5,
-            help="Mayor FPS = más precisión pero más CPU. Menor FPS = menos CPU."
-        )
-    with col_info:
-        st.info(f"🎯 FPS: **{fps_value}**")
-    st.divider()
+    with col_v:
+        st.caption("Cámara nativa OpenCV — sin WebRTC.")
+        
+        # Panel de control compacto
+        with st.expander("⚙️ Configuración de Stream", expanded=False):
+            fps_value = st.slider(
+                "📊 FPS", min_value=10, max_value=60, value=20, step=5
+            )
+        
+        col_btn1, col_btn2 = st.columns(2)
+        start_btn = col_btn1.button("▶️  INICIAR", key="start_cam", use_container_width=True)
+        stop_btn  = col_btn2.button("⏹️  DETENER", key="stop_cam",  use_container_width=True)
+
+        vid_ph = st.empty()
+
+    with col_r:
+        res_ph = st.empty()
+        st.markdown("---")
+        st.info("💡 Coloca el residuo en el centro del cuadro blanco para mejorar la detección.")
 
     if MODEL is None:
         st.error("⚠️ Modelo no disponible.")
     else:
-        col_btn1, col_btn2, _ = st.columns([1, 1, 3])
-        start_btn = col_btn1.button("▶️  INICIAR", key="start_cam", use_container_width=True)
-        stop_btn  = col_btn2.button("⏹️  DETENER", key="stop_cam",  use_container_width=True)
-
         if "cam_running" not in st.session_state:
             st.session_state.cam_running   = False
             st.session_state.stop_event    = threading.Event()
@@ -446,13 +419,9 @@ elif "VIDEO" in mode:
             st.session_state.stop_event.set()
             st.session_state.cam_running = False
 
-        vid_ph = st.empty()
-        res_ph = st.empty()
-
         if st.session_state.cam_running:
-            st.info("🟢 Stream activo. Presiona **DETENER** para parar.")
-            # Aumentamos el tiempo de vida del stream para la Expoferia (4 horas)
-            deadline = time.time() + 14400 
+            # Aumentamos el tiempo de vida del stream para la Expoferia (6 horas)
+            deadline = time.time() + 21600 
             while st.session_state.cam_running and time.time() < deadline:
                 fd = st.session_state.frame_shared.get("img")
                 rd = st.session_state.result_shared.get("data")
@@ -464,7 +433,6 @@ elif "VIDEO" in mode:
                 if fd is not None:
                     vid_ph.image(fd, channels="RGB", use_column_width=True, caption="🎥 Stream en Vivo")
                 if rd:
-                    # --- LÓGICA DE UMBRAL DE DUDA (FASE C) ---
                     conf = rd.get('confianza', 0)
                     es_dudoso = conf < DOUBT_THRESHOLD
                     titulo_res = f"{rd.get('emoji','')} {rd.get('clase','').replace('_',' ').title()} · {conf}%"
@@ -474,59 +442,56 @@ elif "VIDEO" in mode:
                         titulo_res = f"🤔 ¿{rd.get('clase','').replace('_',' ').title()}? · Incertidumbre"
 
                     res_ph.markdown(f"""
-<div class="result-box {color_box}" style="margin-top:0.4rem">
+<div class="result-box {color_box}" style="margin-top:0">
   <h3>{titulo_res}</h3>
   <div class="confidence-bar-bg"><div class="confidence-bar" style="width:{conf}%"></div></div>
 </div>
 <div class="result-box result-info" style="margin-top:0.3rem">
   <h3>{"💡 Sugerencia" if es_dudoso else "🗑️ Contenedor: " + rd.get('color','')}</h3>
-  <p>{"La IA tiene dudas. Intenta centrar mejor el objeto." if es_dudoso else ""}</p>
+  <p>{"La IA tiene dudas. Intenta centrar mejor el objeto." if es_dudoso else rd.get('consejo','')}</p>
 </div>
 """, unsafe_allow_html=True)
-                # Reducimos el sleep para mayor fluidez visual (~33 FPS max)
                 time.sleep(0.03)
             if st.session_state.cam_running:
-                st.warning("🔄 Presiona **INICIAR** de nuevo para continuar.")
                 st.session_state.stop_event.set()
                 st.session_state.cam_running = False
 
 # ── MODO ARCHIVO ──────────────────────────────────────────────────────────────
 else:
     st.markdown("### 📁 Archivo · Análisis Offline")
-    st.caption("Sube una imagen (JPG, PNG, WEBP) o un video (MP4, AVI, MOV).")
+    st.caption("Sube una imagen o un video para que la IA lo analice.")
     tab_img, tab_vid = st.tabs(["🖼️  Imagen", "🎬  Video"])
 
     with tab_img:
-        uploaded_img = st.file_uploader(
-            "Arrastra o selecciona una imagen",
-            type=["jpg", "jpeg", "png", "webp"], key="img_upload"
-        )
-        if uploaded_img:
-            img = Image.open(uploaded_img)
-            # FIX 3: imagen + resultados en columnas lado a lado
-            col_img, col_res = st.columns([1, 1])
-            with col_img:
+        col_v, col_r = st.columns([1.5, 1])
+        with col_v:
+            uploaded_img = st.file_uploader(
+                "Arrastra o selecciona una imagen",
+                type=["jpg", "jpeg", "png", "webp"], key="img_upload"
+            )
+            if uploaded_img:
+                img = Image.open(uploaded_img)
                 st.image(img, use_column_width=True, caption="Imagen cargada")
-            with col_res:
-                if MODEL is not None:
-                    with _INFER_SEM:
-                        res, disclaimer = predict_top3(img, model=MODEL)
-                    top = res[0]
-                    # --- LÓGICA DE UMBRAL DE DUDA (FASE C) ---
-                    es_dudoso = top['confianza'] < DOUBT_THRESHOLD
-                    titulo_res = f"✅ {top['emoji']} {top['clase'].replace('_',' ').title()}"
-                    sub_res    = f"{top['confianza']}%"
-                    msg_duda   = ""
-                    
-                    if es_dudoso and len(res) > 1:
-                        alt = res[1]
-                        titulo_res = f"🤔 ¿{top['clase'].replace('_',' ').title()}?"
-                        sub_res    = "Incertidumbre detectada"
-                        msg_duda   = (f"Parece **{top['clase'].replace('_',' ')}**, pero también podría ser "
-                                      f"**{alt['clase'].replace('_',' ')}**. ¿Podrías acercar más la cámara?")
+        
+        with col_r:
+            if uploaded_img and MODEL is not None:
+                with _INFER_SEM:
+                    res, disclaimer = predict_top3(img, model=MODEL)
+                top = res[0]
+                es_dudoso = top['confianza'] < DOUBT_THRESHOLD
+                titulo_res = f"✅ {top['emoji']} {top['clase'].replace('_',' ').title()}"
+                sub_res    = f"{top['confianza']}%"
+                msg_duda   = ""
+                
+                if es_dudoso and len(res) > 1:
+                    alt = res[1]
+                    titulo_res = f"🤔 ¿{top['clase'].replace('_',' ').title()}?"
+                    sub_res    = "Incertidumbre detectada"
+                    msg_duda   = (f"Parece **{top['clase'].replace('_',' ')}**, pero también podría ser "
+                                f"**{alt['clase'].replace('_',' ')}**.")
 
-                    color_box = "result-top" if not es_dudoso else "result-warn"
-                    st.markdown(f"""
+                color_box = "result-top" if not es_dudoso else "result-warn"
+                st.markdown(f"""
 <div class="result-box {color_box}">
   <h3>{titulo_res}</h3>
   <p style="color:#f1f5f9;font-weight:700;font-size:1.05rem;margin:0.1rem 0">{sub_res}</p>
@@ -537,46 +502,48 @@ else:
   <p>{msg_duda if es_dudoso else top['consejo']}</p>
 </div>
 """, unsafe_allow_html=True)
-                    st.markdown("**🔬 Top 3:**")
-                    for r in res:
-                        st.markdown(f"- {r['emoji']} **{r['clase'].replace('_',' ').title()}** — {r['confianza']}%")
-                    st.markdown(f'<div class="result-box result-warn"><p>{disclaimer}</p></div>', unsafe_allow_html=True)
-                else:
-                    st.error("⚠️ Modelo no disponible.")
+                st.markdown("**🔬 Top 3:**")
+                for r in res:
+                    st.markdown(f"- {r['emoji']} **{r['clase'].replace('_',' ').title()}** — {r['confianza']}%")
+                st.markdown(f'<div class="result-box result-warn"><p style="font-size:0.85rem">{disclaimer}</p></div>', unsafe_allow_html=True)
 
     with tab_vid:
-        uploaded_vid = st.file_uploader(
-            "Arrastra o selecciona un video",
-            type=["mp4", "avi", "mov", "mkv"], key="vid_upload"
-        )
-        if uploaded_vid:
-            tmp_path = os.path.join(os.path.dirname(__file__), "_tmp_video.mp4")
-            with open(tmp_path, "wb") as f:
-                f.write(uploaded_vid.read())
-            st.video(tmp_path)
-            st.info("🔬 Analizando fotogramas del video...")
-            cap          = cv2.VideoCapture(tmp_path)
-            total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-            sample_every = max(1, total_frames // 8)
-            results_vid  = []
-            frame_idx    = 0
-            progress     = st.progress(0, text="Procesando...")
-            if MODEL is not None:
+        col_v, col_r = st.columns([1.5, 1])
+        with col_v:
+            uploaded_vid = st.file_uploader(
+                "Arrastra o selecciona un video",
+                type=["mp4", "avi", "mov", "mkv"], key="vid_upload"
+            )
+            if uploaded_vid:
+                tmp_path = os.path.join(os.path.dirname(__file__), "_tmp_video.mp4")
+                with open(tmp_path, "wb") as f:
+                    f.write(uploaded_vid.read())
+                st.video(tmp_path)
+        
+        with col_r:
+            if uploaded_vid and MODEL is not None:
+                st.info("🔬 Analizando fotogramas...")
+                cap          = cv2.VideoCapture(tmp_path)
+                total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+                sample_every = max(1, total_frames // 8)
+                results_vid  = []
+                frame_idx    = 0
+                progress     = st.progress(0)
+                
                 while True:
                     ret, frame = cap.read()
-                    if not ret:
-                        break
+                    if not ret: break
                     if frame_idx % sample_every == 0:
                         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                         pil = Image.fromarray(cv2.resize(rgb, (224, 224)))
                         with _INFER_SEM:
                             r = predict_frame(pil, MODEL)
                         results_vid.append(r)
-                        done = min(100, int(frame_idx / max(total_frames, 1) * 100))
-                        progress.progress(done, text=f"Fotograma {frame_idx}/{total_frames}")
+                        progress.progress(min(100, int(frame_idx / max(total_frames, 1) * 100)))
                     frame_idx += 1
                 cap.release()
                 progress.empty()
+                
                 if results_vid:
                     from collections import Counter
                     counter  = Counter(r['clase'] for r in results_vid)
@@ -589,18 +556,33 @@ else:
   <p>{top_count}/{len(results_vid)} muestras detectadas</p>
   <div class="confidence-bar-bg"><div class="confidence-bar" style="width:{avg_conf:.0f}%"></div></div>
 </div>
-<div class="result-box result-info" style="margin-top:0.5rem">
-  <h3>🗑️ Contenedor: {top_r['color']}</h3>
-</div>
 """, unsafe_allow_html=True)
-                    st.markdown("**📊 Todas las detecciones:**")
-                    for clase, cnt in counter.most_common():
+                    st.markdown("**📊 Resumen de detecciones:**")
+                    for clase, cnt in counter.most_common(3):
                         emoji = next((r['emoji'] for r in results_vid if r['clase'] == clase), '❓')
-                        st.markdown(f"- {emoji} **{clase.replace('_',' ').title()}** · {cnt} fotogramas")
+                        st.markdown(f"- {emoji} **{clase.replace('_',' ').title()}** · {cnt} frames")
                 try:
                     os.remove(tmp_path)
-                except Exception:
-                    pass
-            else:
-                cap.release()
-                st.error("⚠️ Modelo no disponible.")
+                except Exception: pass
+
+st.markdown("---")
+# Guía de contenedores — colores correctos según AGG 164-2021
+st.markdown("**🗑️ Guía de Contenedores (Normativa AGG 164-2021)**")
+col_c1, col_c2, col_c3 = st.columns(3)
+with col_c1:
+    st.markdown("""
+    <span class="sidebar-badge badge-amarillo" style="display:block;margin-bottom:0.2rem">🟡 Amarillo — Papel / Cartón</span>
+    <span class="sidebar-badge badge-azul"     style="display:block;margin-bottom:0.2rem">🔵 Azul — Plástico</span>
+    <span class="sidebar-badge badge-celeste"  style="display:block">🔷 Celeste — Vidrio</span>
+    """, unsafe_allow_html=True)
+with col_c2:
+    st.markdown("""
+    <span class="sidebar-badge badge-gris"    style="display:block;margin-bottom:0.2rem">⚫ Gris — Metal</span>
+    <span class="sidebar-badge badge-naranja" style="display:block;margin-bottom:0.2rem">🟠 Naranja — Multicapa (Tetra Pak)</span>
+    <span class="sidebar-badge badge-verde"   style="display:block">🟢 Verde — Orgánicos</span>
+    """, unsafe_allow_html=True)
+with col_c3:
+    st.markdown("""
+    <span class="sidebar-badge badge-negro" style="display:block;margin-bottom:0.2rem">⬛ Negro — No reciclable</span>
+    <span class="sidebar-badge badge-rojo"  style="display:block">🔴 Rojo — Electrónicos</span>
+    """, unsafe_allow_html=True)
