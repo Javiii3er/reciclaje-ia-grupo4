@@ -330,6 +330,12 @@ mode = st.radio(
     label_visibility="collapsed"
 )
 
+# AUTO-STOP VIDEO: Si cambiamos de modo, liberamos la cámara inmediatamente para evitar conflictos
+if "VIDEO" not in mode and st.session_state.get("cam_running"):
+    st.session_state.stop_event.set()
+    st.session_state.cam_running = False
+    st.rerun() 
+
 st.markdown('<div class="work-panel">', unsafe_allow_html=True)
 
 # ── MODO CÁMARA ───────────────────────────────────────────────────────────────
@@ -444,8 +450,9 @@ elif "VIDEO" in mode:
         res_ph = st.empty()
 
         if st.session_state.cam_running:
-            st.info("🟢 Stream activo — IA cada 20 fotogramas. Presiona **DETENER** para parar.")
-            deadline = time.time() + 30
+            st.info("🟢 Stream activo. Presiona **DETENER** para parar.")
+            # Aumentamos el tiempo de vida del stream para la Expoferia (4 horas)
+            deadline = time.time() + 14400 
             while st.session_state.cam_running and time.time() < deadline:
                 fd = st.session_state.frame_shared.get("img")
                 rd = st.session_state.result_shared.get("data")
@@ -476,7 +483,8 @@ elif "VIDEO" in mode:
   <p>{"La IA tiene dudas. Intenta centrar mejor el objeto." if es_dudoso else ""}</p>
 </div>
 """, unsafe_allow_html=True)
-                time.sleep(0.08)
+                # Reducimos el sleep para mayor fluidez visual (~33 FPS max)
+                time.sleep(0.03)
             if st.session_state.cam_running:
                 st.warning("🔄 Presiona **INICIAR** de nuevo para continuar.")
                 st.session_state.stop_event.set()
