@@ -193,15 +193,33 @@ def get_stable_model():
 _INFER_SEM = threading.Semaphore(1)
 
 # ── STREAM NATIVO (cv2 + st.empty) ───────────────────────────────────────────
-def run_native_stream(model, placeholder_frame, placeholder_result, stop_event, fps_value=20):
-    cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-    # Aumentar resolución a 720p para vista más grande
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH,  1280)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-    cap.set(cv2.CAP_PROP_FPS, fps_value)
+def _abrir_camara(fps_value=20):
+    for idx in range(3):
+        cap = cv2.VideoCapture(idx, cv2.CAP_MSMF)
+        if not cap.isOpened():
+            cap.release()
+            continue
+        # Intentar con resolución HD
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH,  1280)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+        cap.set(cv2.CAP_PROP_FPS, fps_value)
+        ret, _ = cap.read()
+        if ret:
+            return cap
+        # Si HD falla, intentar con resolución estándar
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH,  640)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+        ret, _ = cap.read()
+        if ret:
+            return cap
+        cap.release()
+    return None
 
-    if not cap.isOpened():
-        placeholder_result['error'] = 'No se pudo acceder a la cámara. Verifica permisos.'
+def run_native_stream(model, placeholder_frame, placeholder_result, stop_event, fps_value=20):
+    cap = _abrir_camara(fps_value)
+
+    if cap is None:
+        placeholder_result['error'] = 'No se pudo acceder a la cámara. Verifica permisos de Windows (Configuración → Privacidad → Cámara).'
         stop_event.set()
         return
 
@@ -303,7 +321,7 @@ st.markdown("""
 
 # ── SELECTOR DE MODO (pantalla completa centrada) ─────────────────────────────
 mode = st.radio(
-    "",
+    "Modo de clasificación",
     options=["📷  CÁMARA — Tomar Foto", "🎥  VIDEO — Tiempo Real", "📁  ARCHIVO — Subir Imagen/Video"],
     horizontal=True,
     label_visibility="collapsed"
@@ -324,7 +342,7 @@ if "CÁMARA" in mode:
     
     with col_v:
         st.caption("Apunta al objeto y toma la foto.")
-        camera_photo = st.camera_input("", label_visibility="collapsed")
+        camera_photo = st.camera_input("Captura de cámara", label_visibility="collapsed")
     
     with col_r:
         if camera_photo:
