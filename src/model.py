@@ -35,6 +35,21 @@ COLOR_MAP = {
     'no_reciclable':        ('Otros',       'Negro',    '⬛', 'Depositar en la basura general.'),
 }
 
+# Umbrales de confianza por clase calibrados por volumen de muestras y confusiones conocidas.
+# Las clases con menos datos o mayor solapamiento visual usan un umbral más bajo.
+CLASS_THRESHOLDS: dict[str, float] = {
+    'bolsa_plastica':        45.0,
+    'botella_vidrio':        45.0,
+    'electronicos_pequenos': 50.0,
+    'no_reciclable':         50.0,
+    'lata':                  60.0,
+    'tetrapak':              60.0,
+    'papel':                 65.0,
+    'carton':                65.0,
+    'organico':              70.0,
+    'botella_pet':           70.0,
+}
+
 DISCLAIMER = (
     "⚠️ Este sistema es una herramienta de apoyo educativo. "
     "Las recomendaciones son orientativas y pueden variar según el municipio."

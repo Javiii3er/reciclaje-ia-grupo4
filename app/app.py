@@ -14,11 +14,15 @@ import streamlit as st
 from PIL import Image
 import cv2
 import numpy as np
+import queue as _queue
+import av
 import torch
+from streamlit_webrtc import webrtc_streamer, VideoProcessorBase, WebRtcMode
 
 torch.set_num_threads(1)
 
 from predict import predict_top3, predict_frame, load_model
+from model import CLASS_THRESHOLDS, get_prediction_info
 
 # ── CONFIGURACIÓN DE PÁGINA ──────────────────────────────────────────────────
 st.set_page_config(
@@ -367,91 +371,73 @@ def get_stable_model():
 
 _INFER_SEM = threading.Semaphore(1)
 
-# ── STREAM NATIVO (cv2 + st.empty) ───────────────────────────────────────────
-def _abrir_camara(fps_value=20):
-    for idx in range(3):
-        cap = cv2.VideoCapture(idx, cv2.CAP_MSMF)
-        if not cap.isOpened():
-            cap.release()
-            continue
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH,  1280)
-        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-        cap.set(cv2.CAP_PROP_FPS, fps_value)
-        ret, _ = cap.read()
-        if ret:
-            return cap
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH,  640)
-        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-        ret, _ = cap.read()
-        if ret:
-            return cap
-        cap.release()
-    return None
+def _es_dudoso(clase: str, confianza: float) -> bool:
+    return confianza < CLASS_THRESHOLDS.get(clase, DOUBT_THRESHOLD)
 
-def run_native_stream(model, placeholder_frame, placeholder_result, stop_event, fps_value=20):
-    cap = _abrir_camara(fps_value)
+def _titulo_clase(clase: str) -> str:
+    info = get_prediction_info(clase)
+    if info['categoria'] == 'Plástico':
+        return f"Plástico — {clase.replace('_', ' ').title()}"
+    return clase.replace('_', ' ').title()
 
-    if cap is None:
-        placeholder_result['error'] = 'No se pudo acceder a la cámara. Verifica permisos en Configuración → Privacidad → Cámara.'
-        stop_event.set()
-        return
+# ── PROCESADOR WEBRTC ─────────────────────────────────────────────────────────
+_COLOR_BGR = {
+    'Amarillo': (0,  215, 255),
+    'Azul':     (255,  80,   0),
+    'Celeste':  (210, 180,   0),
+    'Gris':     (160, 160, 160),
+    'Naranja':  (0,  140, 255),
+    'Verde':    (0,  200,  80),
+    'Rojo':     (0,   60, 220),
+    'Negro':    (50,  50,  50),
+}
 
-    last_res  = {'clase': 'Analizando...', 'confianza': 0, 'color': 'Gris'}
-    frame_cnt = 0
+class ReciclajeProcessor(VideoProcessorBase):
+    def __init__(self):
+        self.model = None
+        self._frame_count = 0
+        self._lock = threading.Lock()
+        self._last = {'clase': '...', 'confianza': 0, 'color': 'Gris', 'emoji': '', 'consejo': ''}
+        self.result_queue = _queue.Queue(maxsize=1)
 
-    while not stop_event.is_set():
-        ret, frame = cap.read()
-        if not ret:
-            time.sleep(0.05)
-            continue
+    def recv(self, frame: av.VideoFrame) -> av.VideoFrame:
+        img = frame.to_ndarray(format="bgr24")
+        h, w = img.shape[:2]
 
-        h, w, _ = frame.shape
-        rect_size = 400
-        x1 = (w - rect_size) // 2
-        y1 = (h - rect_size) // 2
-        x2 = x1 + rect_size
-        y2 = y1 + rect_size
+        rect_size = min(400, min(h, w) - 20)
+        x1, y1 = (w - rect_size) // 2, (h - rect_size) // 2
+        x2, y2 = x1 + rect_size, y1 + rect_size
 
-        frame_cnt += 1
-        if frame_cnt % 15 == 0 and model is not None:
-            acquired = _INFER_SEM.acquire(blocking=True, timeout=0.10)
-            if acquired:
+        self._frame_count += 1
+        if self._frame_count % 15 == 0 and self.model is not None:
+            try:
+                roi = img[y1:y2, x1:x2]
+                rgb = cv2.cvtColor(roi, cv2.COLOR_BGR2RGB)
+                pil = Image.fromarray(cv2.resize(rgb, (224, 224), interpolation=cv2.INTER_AREA))
+                result = predict_frame(pil, self.model)
+                with self._lock:
+                    self._last = result
                 try:
-                    roi     = frame[y1:y2, x1:x2]
-                    rgb     = cv2.cvtColor(roi, cv2.COLOR_BGR2RGB)
-                    resized = cv2.resize(rgb, (224, 224), interpolation=cv2.INTER_AREA)
-                    with torch.no_grad():
-                        last_res = predict_frame(Image.fromarray(resized), model)
-                except Exception:
+                    self.result_queue.put_nowait(result)
+                except _queue.Full:
                     pass
-                finally:
-                    _INFER_SEM.release()
+            except Exception:
+                pass
 
-        color_bgr = {
-            'Amarillo': (0,  215, 255),
-            'Azul':     (255,  80,   0),
-            'Celeste':  (210, 180,   0),
-            'Gris':     (160, 160, 160),
-            'Naranja':  (0,  140, 255),
-            'Verde':    (0,  200,  80),
-            'Rojo':     (0,   60, 220),
-            'Negro':    (50,  50,  50),
-        }.get(last_res.get('color', 'Gris'), (100, 100, 100))
+        with self._lock:
+            last = dict(self._last)
 
-        overlay = frame.copy()
-        cv2.rectangle(frame,   (x1, y1),     (x2, y2),     (255, 255, 255), 2)
-        cv2.rectangle(frame,   (x1-1, y1-1), (x2+1, y2+1), color_bgr,       1)
+        color_bgr = _COLOR_BGR.get(last.get('color', 'Gris'), (100, 100, 100))
+        overlay = img.copy()
+        cv2.rectangle(img,     (x1, y1),     (x2, y2),     (255, 255, 255), 2)
+        cv2.rectangle(img,     (x1-1, y1-1), (x2+1, y2+1), color_bgr,       1)
         cv2.rectangle(overlay, (0, 0),        (w, 60),       color_bgr,      -1)
-        cv2.addWeighted(overlay, 0.75, frame, 0.25, 0, frame)
+        cv2.addWeighted(overlay, 0.75, img, 0.25, 0, img)
+        cv2.putText(img,
+                    f"{last.get('clase','').upper()}  {last.get('confianza',0)}%",
+                    (20, 42), cv2.FONT_HERSHEY_DUPLEX, 1.0, (255, 255, 255), 2)
 
-        text = f"{last_res.get('clase','').upper()}  {last_res.get('confianza',0)}%"
-        cv2.putText(frame, text, (20, 42), cv2.FONT_HERSHEY_DUPLEX, 1.0, (255, 255, 255), 2)
-
-        placeholder_frame['img']   = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        placeholder_result['data'] = last_res
-        time.sleep(0.03)
-
-    cap.release()
+        return av.VideoFrame.from_ndarray(img, format="bgr24")
 
 # ── CARGA DEL MODELO ─────────────────────────────────────────────────────────
 with st.spinner("Cargando Motor de IA..."):
@@ -467,7 +453,7 @@ st.markdown(f"""
     <div class="navbar-center">
         <span>Modelo: {model_status}</span>
         <span>{device_label}</span>
-        <span>Precisión: 99.44%</span>
+        <span>Acc. train: 99.44%</span>
     </div>
     <div class="navbar-right">UMG · Grupo 4 · 2026</div>
 </div>
@@ -490,12 +476,6 @@ mode = st.radio(
     label_visibility="collapsed"
 )
 
-# AUTO-STOP VIDEO
-if "VIDEO" not in mode and st.session_state.get("cam_running"):
-    st.session_state.stop_event.set()
-    st.session_state.cam_running = False
-    st.rerun()
-
 st.markdown('<div class="work-panel">', unsafe_allow_html=True)
 
 # ── MODO CÁMARA ───────────────────────────────────────────────────────────────
@@ -514,14 +494,14 @@ if "CÁMARA" in mode:
                 with _INFER_SEM:
                     res, disclaimer = predict_top3(img, model=MODEL)
                 top = res[0]
-                es_dudoso  = top['confianza'] < DOUBT_THRESHOLD
-                titulo_res = top['clase'].replace('_', ' ').title()
+                es_dudoso  = _es_dudoso(top['clase'], top['confianza'])
+                titulo_res = _titulo_clase(top['clase'])
                 sub_res    = f"{top['confianza']}%"
                 msg_duda   = ""
 
                 if es_dudoso and len(res) > 1:
                     alt        = res[1]
-                    titulo_res = f"¿{top['clase'].replace('_', ' ').title()}?"
+                    titulo_res = f"¿{_titulo_clase(top['clase'])}?"
                     sub_res    = "Confianza baja"
                     msg_duda   = (f"Parece <strong>{top['clase'].replace('_',' ')}</strong>, "
                                   f"pero también podría ser "
@@ -564,16 +544,14 @@ elif "VIDEO" in mode:
     col_v, col_r = st.columns([2, 1])
 
     with col_v:
-        st.markdown('<div class="section-subtitle">Cámara nativa OpenCV — detección continua frame a frame.</div>', unsafe_allow_html=True)
-
-        with st.expander("Configuración de Stream", expanded=False):
-            fps_value = st.slider("FPS", min_value=10, max_value=60, value=20, step=5)
-
-        col_btn1, col_btn2 = st.columns(2)
-        start_btn = col_btn1.button("INICIAR", key="start_cam", use_container_width=True)
-        stop_btn  = col_btn2.button("DETENER", key="stop_cam",  use_container_width=True)
-
-        vid_ph = st.empty()
+        st.markdown('<div class="section-subtitle">Detección continua via WebRTC — funciona en cualquier navegador.</div>', unsafe_allow_html=True)
+        ctx = webrtc_streamer(
+            key="reciclaje-video",
+            mode=WebRtcMode.SENDRECV,
+            video_processor_factory=ReciclajeProcessor,
+            async_processing=True,
+            media_stream_constraints={"video": True, "audio": False},
+        )
 
     with col_r:
         res_ph = st.empty()
@@ -582,64 +560,33 @@ elif "VIDEO" in mode:
 
     if MODEL is None:
         st.error("Modelo no disponible.")
-    else:
-        if "cam_running" not in st.session_state:
-            st.session_state.cam_running   = False
-            st.session_state.stop_event    = threading.Event()
-            st.session_state.frame_shared  = {}
-            st.session_state.result_shared = {}
-
-        if start_btn and not st.session_state.cam_running:
-            st.session_state.stop_event    = threading.Event()
-            st.session_state.frame_shared  = {}
-            st.session_state.result_shared = {}
-            st.session_state.cam_running   = True
-            threading.Thread(
-                target=run_native_stream,
-                args=(MODEL, st.session_state.frame_shared,
-                      st.session_state.result_shared, st.session_state.stop_event, fps_value),
-                daemon=True
-            ).start()
-
-        if stop_btn and st.session_state.cam_running:
-            st.session_state.stop_event.set()
-            st.session_state.cam_running = False
-
-        if st.session_state.cam_running:
+    elif ctx.video_processor:
+        ctx.video_processor.model = MODEL
+        if ctx.state.playing:
             deadline = time.time() + 21600
-            while st.session_state.cam_running and time.time() < deadline:
-                fd = st.session_state.frame_shared.get("img")
-                rd = st.session_state.result_shared.get("data")
-                em = st.session_state.result_shared.get("error")
-                if em:
-                    vid_ph.error(em)
-                    st.session_state.cam_running = False
-                    break
-                if fd is not None:
-                    vid_ph.image(fd, channels="RGB", use_column_width=True, caption="Stream en Vivo")
-                if rd:
+            while ctx.state.playing and time.time() < deadline:
+                try:
+                    rd        = ctx.video_processor.result_queue.get(timeout=0.1)
                     conf      = rd.get('confianza', 0)
-                    es_dudoso = conf < DOUBT_THRESHOLD
-                    clase_txt = rd.get('clase', '').replace('_', ' ').title()
-                    titulo_res = f"¿{clase_txt}? · Incertidumbre" if es_dudoso else clase_txt
-                    color_box  = "result-top" if not es_dudoso else "result-warn"
-
+                    clase     = rd.get('clase', '')
+                    dudoso    = _es_dudoso(clase, conf)
+                    titulo    = f"¿{_titulo_clase(clase)}? · Incertidumbre" if dudoso else _titulo_clase(clase)
+                    color_box = "result-top" if not dudoso else "result-warn"
                     res_ph.markdown(f"""
 <div class="result-box {color_box}" style="margin-top:0">
     <div class="result-label">Detección en tiempo real</div>
-    <h3>{titulo_res}</h3>
+    <h3>{titulo}</h3>
     <span class="conf-value">{conf}% confianza</span>
     <div class="confidence-bar-bg"><div class="confidence-bar" style="width:{conf}%"></div></div>
 </div>
 <div class="result-box result-info" style="margin-top:0.5rem">
-    <div class="result-label">{"Sugerencia" if es_dudoso else "Contenedor: " + rd.get('color','')}</div>
-    <p>{"La IA tiene dudas. Intenta centrar mejor el objeto." if es_dudoso else rd.get('consejo','')}</p>
+    <div class="result-label">{"Sugerencia" if dudoso else "Contenedor: " + rd.get('color','')}</div>
+    <p>{"La IA tiene dudas. Intenta centrar mejor el objeto." if dudoso else rd.get('consejo','')}</p>
 </div>
 """, unsafe_allow_html=True)
+                except _queue.Empty:
+                    pass
                 time.sleep(0.03)
-            if st.session_state.cam_running:
-                st.session_state.stop_event.set()
-                st.session_state.cam_running = False
 
 # ── MODO ARCHIVO ──────────────────────────────────────────────────────────────
 else:
@@ -663,14 +610,14 @@ else:
                 with _INFER_SEM:
                     res, disclaimer = predict_top3(img, model=MODEL)
                 top = res[0]
-                es_dudoso  = top['confianza'] < DOUBT_THRESHOLD
-                titulo_res = top['clase'].replace('_', ' ').title()
+                es_dudoso  = _es_dudoso(top['clase'], top['confianza'])
+                titulo_res = _titulo_clase(top['clase'])
                 sub_res    = f"{top['confianza']}%"
                 msg_duda   = ""
 
                 if es_dudoso and len(res) > 1:
                     alt        = res[1]
-                    titulo_res = f"¿{top['clase'].replace('_', ' ').title()}?"
+                    titulo_res = f"¿{_titulo_clase(top['clase'])}?"
                     sub_res    = "Confianza baja"
                     msg_duda   = (f"Parece <strong>{top['clase'].replace('_',' ')}</strong>, "
                                   f"pero también podría ser "
@@ -746,7 +693,7 @@ else:
                     st.markdown(f"""
 <div class="result-box result-top">
     <div class="result-label">Clase dominante</div>
-    <h3>{top_clase.replace('_',' ').title()}</h3>
+    <h3>{_titulo_clase(top_clase)}</h3>
     <span class="conf-value">{avg_conf:.1f}% confianza · {top_count}/{len(results_vid)} muestras</span>
     <div class="confidence-bar-bg"><div class="confidence-bar" style="width:{avg_conf:.0f}%"></div></div>
 </div>""", unsafe_allow_html=True)

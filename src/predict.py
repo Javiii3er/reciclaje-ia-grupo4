@@ -79,4 +79,5 @@ def predict_frame(
         'confianza':  round(prob.item() * 100, 1),
         'emoji':      info['emoji'],
         'color':      info['color'],
+        'consejo':    info['consejo'],
     }

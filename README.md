@@ -49,15 +49,23 @@ El sistema devuelve:
 
 ## Resultados del Modelo
 
+### Métricas en conjunto de entrenamiento (train — 70 %)
+
 | Métrica | Valor | Descripción |
 |---------|-------|-------------|
-| **Accuracy global** | **99.44%** | Imágenes correctamente clasificadas en el conjunto de entrenamiento |
+| **Accuracy global** | **99.44%** | Imágenes correctamente clasificadas |
 | **Top-2 Accuracy** | **99.86%** | La clase correcta está entre las 2 más probables |
-| **Confianza media** | **99.68%** | El modelo es muy seguro en sus predicciones |
+| **Confianza media** | **99.68%** | Promedio de softmax en predicciones correctas |
 | **Baseline (referencia)** | 27.66% | Accuracy de un modelo que adivina al azar |
-| **Mejora sobre baseline** | +71.78 pp | El modelo es 71.78 puntos porcentuales mejor que adivinar |
+| **Mejora sobre baseline** | +71.78 pp | El modelo supera en 71.78 pp a adivinar |
 
-> **Nota:** Las métricas corresponden al dataset de entrenamiento. Los resultados en producción con imágenes del mundo real pueden variar.
+> ⚠️ **Importante:** Estas métricas son sobre el subconjunto de **entrenamiento** y no son el indicador de generalización del modelo. Para la métrica de rendimiento real consulta la siguiente sección.
+
+### Métricas en conjunto de prueba (test — 15 %)
+
+Las métricas sobre el conjunto de prueba (datos no vistos durante el entrenamiento) son las que representan el rendimiento real del modelo. Se calculan ejecutando `notebooks/03_evaluation.ipynb`.
+
+> Consulta el notebook `03_evaluation.ipynb` o el `informe_final.pdf` para los valores exactos de Accuracy, F1-macro y la matriz de confusión sobre el conjunto de test.
 
 ### Análisis de errores de confusión
 
