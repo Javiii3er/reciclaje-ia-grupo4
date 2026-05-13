@@ -132,7 +132,7 @@ La app **EcoRecicla IA** cuenta con tres modos de entrada:
 
 ```bash
 # 1. Clonar el repositorio
-git clone https://github.com/TU_USUARIO/reciclaje-ia-grupo4.git
+git clone https://github.com/Javiii3er/reciclaje-ia-grupo4.git
 cd reciclaje-ia-grupo4
 
 # 2. Crear entorno virtual
