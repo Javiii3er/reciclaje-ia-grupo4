@@ -6,7 +6,7 @@
 
 ---
 
-##  Información del Curso
+## Información del Curso
 
 | Campo | Detalle |
 |-------|---------|
@@ -19,7 +19,7 @@
 
 ---
 
-##  Integrantes del Equipo
+## Integrantes del Equipo
 
 | Nombre | Carné | Rol | Clave funcional |
 |--------|-------|-----|-----------------|
@@ -31,33 +31,35 @@
 
 ---
 
-##  Descripción del Proyecto
+## Descripción del Proyecto
 
-**EcoRecicla IA** es un sistema de inteligencia artificial capaz de **identificar el tipo de residuo sólido** a partir de una fotografía tomada por cámara, capturada en video en tiempo real o cargada como archivo. El sistema devuelve:
+**EcoRecicla IA** es una aplicación que usa inteligencia artificial para identificar residuos desde una fotografía y decirte exactamente en qué recipiente depositarlos. Desarrollada con tecnología **MobileNetV2** y entrenada con más de 1,900 imágenes, clasifica 10 tipos de residuos en tiempo real y busca facilitar el reciclaje responsable en Guatemala, alineada con el **Acuerdo Gubernativo 164-2021**.
 
--  Clase del residuo detectado (ej. `botella_pet`, `lata`, `papel`)
--  Color de recipiente donde debe depositarse
--  Nivel de confianza del modelo (%)
--  Consejo práctico de manejo
--  Alerta de duda cuando la confianza es menor al 70%
+El sistema devuelve:
 
-El modelo está construido con **Transfer Learning sobre MobileNetV2** preentrenado en ImageNet, fine-tuned para 10 clases de residuos del contexto guatemalteco, alcanzando un **99.44% de accuracy global**.
+- Clase del residuo detectado (ej. `botella_pet`, `lata`, `papel`)
+- Color de recipiente donde debe depositarse según AGG 164-2021
+- Nivel de confianza del modelo (%)
+- Consejo práctico de manejo
+- Alerta de duda cuando la confianza es menor al 70%
 
->  **Disclaimer ético:** Este sistema es una herramienta de apoyo educativo. Las recomendaciones son orientativas y pueden variar según las normativas de reciclaje de cada municipio. No reemplaza la consulta de normativas locales.
+> **Disclaimer ético:** Este sistema es una herramienta de apoyo educativo. Las recomendaciones son orientativas y pueden variar según las normativas de reciclaje de cada municipio. No reemplaza la consulta de normativas locales.
 
 ---
 
-##  Resultados del Modelo
+## Resultados del Modelo
 
 | Métrica | Valor | Descripción |
 |---------|-------|-------------|
-| **Accuracy global** | **99.44%** | Imágenes correctamente clasificadas en el conjunto de prueba |
+| **Accuracy global** | **99.44%** | Imágenes correctamente clasificadas en el conjunto de entrenamiento |
 | **Top-2 Accuracy** | **99.86%** | La clase correcta está entre las 2 más probables |
 | **Confianza media** | **99.68%** | El modelo es muy seguro en sus predicciones |
 | **Baseline (referencia)** | 27.66% | Accuracy de un modelo que adivina al azar |
 | **Mejora sobre baseline** | +71.78 pp | El modelo es 71.78 puntos porcentuales mejor que adivinar |
 
-###  Análisis de errores de confusión
+> **Nota:** Las métricas corresponden al dataset de entrenamiento. Los resultados en producción con imágenes del mundo real pueden variar.
+
+### Análisis de errores de confusión
 
 El modelo es altamente preciso, pero presenta 3 errores recurrentes en el conjunto de prueba:
 
@@ -71,36 +73,38 @@ El modelo es altamente preciso, pero presenta 3 errores recurrentes en el conjun
 
 ---
 
-##  Clases del modelo
+## Clases del modelo
+
+Colores alineados con el **Acuerdo Gubernativo 164-2021** (MARN Guatemala) y su Reforma AGG 184-2023.
 
 | Clase | Categoría | Recipiente | Consejo |
 |-------|-----------|------------|---------|
-| `lata` | Metal | 🟡 Amarillo | Enjuagar y aplastar antes de depositar |
+| `lata` | Metal | ⚫ Gris | Enjuagar y aplastar antes de depositar |
 | `botella_pet` | Plástico | 🔵 Azul | Quitar tapón y aplastar |
-| `botella_vidrio` | Vidrio | 🟢 Verde | No romper, depositar entero |
-| `papel` | Papel | ⚫ Gris | Mantener seco y limpio |
-| `carton` | Papel | ⚫ Gris | Doblar y atar si es grande |
+| `botella_vidrio` | Vidrio | 🔷 Celeste | No romper, depositar entero |
+| `papel` | Papel | 🟡 Amarillo | Mantener seco y limpio |
+| `carton` | Papel | 🟡 Amarillo | Doblar y atar si es grande |
 | `bolsa_plastica` | Plástico | 🔵 Azul | Vaciar completamente |
-| `tetrapak` | Mixto | 🔵 Azul | Enjuagar y aplastar |
-| `organico` | Orgánico | 🟤 Café | Para compostaje o biogás |
+| `tetrapak` | Mixto | 🟠 Naranja | Enjuagar y aplastar |
+| `organico` | Orgánico | 🟢 Verde | Para compostaje o biogás |
 | `electronicos_pequenos` | Electrónico | 🔴 Rojo | Llevar a punto limpio autorizado |
 | `no_reciclable` | Otros | ⬛ Negro | Depositar en basura general |
 
 ---
 
-##  Modos de la aplicación
+## Modos de la aplicación
 
 La app **EcoRecicla IA** cuenta con tres modos de entrada:
 
 | Modo | Descripción |
 |------|-------------|
-|  **Foto instantánea** | Captura desde la cámara web del dispositivo |
-|  **Video en tiempo real** | Stream continuo con OpenCV — predicción cada 20 fotogramas |
-|  **Archivo** | Carga de imagen (JPG/PNG) o video (MP4/AVI/MOV) |
+| **Foto instantánea** | Captura desde la cámara web del dispositivo |
+| **Video en tiempo real** | Stream continuo con OpenCV — predicción cada 20 fotogramas |
+| **Archivo** | Carga de imagen (JPG/PNG) o video (MP4/AVI/MOV) |
 
 ---
 
-##  Tecnologías utilizadas
+## Tecnologías utilizadas
 
 | Librería | Versión | Uso |
 |----------|---------|-----|
@@ -117,7 +121,7 @@ La app **EcoRecicla IA** cuenta con tres modos de entrada:
 
 ---
 
-##  Instalación y ejecución
+## Instalación y ejecución
 
 ### Requisitos previos
 - Python 3.10 o superior
@@ -147,11 +151,11 @@ pip install -r requirements.txt
 streamlit run app/app.py
 ```
 
->  **Nota sobre el modelo:** El archivo `models/modelo_reciclaje.pth` debe estar en la carpeta `models/`. Si supera 25 MB se almacena en Google Drive — ver enlace abajo.
+> **Nota sobre el modelo:** El archivo `models/modelo_reciclaje.pth` debe estar en la carpeta `models/`. Si supera 25 MB se almacena en Google Drive — ver enlace abajo.
 
 ---
 
-##  Estructura del repositorio
+## Estructura del repositorio
 
 ```
 reciclaje-ia-grupo4/
@@ -197,16 +201,16 @@ reciclaje-ia-grupo4/
 
 ---
 
-##  Hitos del proyecto
+## Hitos del proyecto
 
 | Hito | Fecha | Estado |
 |------|-------|--------|
-|  Expoferia — Demo funcional en vivo | 16 de mayo de 2026 | 🟡 Próximo |
-|  Entrega final — Repositorio con tag v1.0 | 30 de mayo de 2026 | ⏳ Pendiente |
+| Expoferia — Demo funcional en vivo | 16 de mayo de 2026 | 🟡 Próximo |
+| Entrega final — Repositorio con tag v1.0 | 30 de mayo de 2026 | ⏳ Pendiente |
 
 ---
 
-##  Convención de commits
+## Convención de commits
 
 | Prefijo | Uso |
 |---------|-----|
@@ -220,7 +224,7 @@ reciclaje-ia-grupo4/
 
 ---
 
-##  Video de demostración
+## Video de demostración
 
 > Enlace disponible la semana del 25 al 29 de mayo de 2026.
 
