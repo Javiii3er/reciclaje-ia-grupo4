@@ -130,7 +130,7 @@ La app **EcoRecicla IA** cuenta con tres modos de entrada:
 | Modo | Descripción |
 |------|-------------|
 | **Foto instantánea** | Captura desde la cámara web del dispositivo |
-| **Video en tiempo real** | Stream continuo con OpenCV — predicción cada 20 fotogramas |
+| **Video en tiempo real** | Stream continuo vía WebRTC — predicción cuadro a cuadro en el navegador |
 | **Archivo** | Carga de imagen (JPG/PNG) o video (MP4/AVI/MOV) |
 
 ---
