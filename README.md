@@ -63,9 +63,32 @@ El sistema devuelve:
 
 ### Métricas en conjunto de prueba (test — 15 %)
 
-Las métricas sobre el conjunto de prueba (datos no vistos durante el entrenamiento) son las que representan el rendimiento real del modelo. Se calculan ejecutando `notebooks/03_evaluation.ipynb`.
+| Métrica | Valor |
+|---------|-------|
+| **Accuracy global** | **83.17%** |
+| **F1-macro** | **78.12%** |
+| **F1-weighted** | **83.63%** |
+| **Top-2 Accuracy** | **94.23%** |
 
-> Consulta el notebook `03_evaluation.ipynb` o el `informe_final.pdf` para los valores exactos de Accuracy, F1-macro y la matriz de confusión sobre el conjunto de test.
+> Evaluado sobre 208 imágenes no vistas durante el entrenamiento (split estratificado 70/15/15, semilla 42).
+
+<details>
+<summary>Métricas por clase</summary>
+
+| Clase | Precisión | Recall | F1 | n |
+|-------|-----------|--------|----|---|
+| bolsa_plastica | 46.7% | 100.0% | 63.6% | 7 |
+| botella_pet | 92.2% | 85.5% | 88.7% | 55 |
+| botella_vidrio | 50.0% | 83.3% | 62.5% | 6 |
+| carton | 92.5% | 88.1% | 90.2% | 42 |
+| electronicos_pequenos | 88.9% | 100.0% | 94.1% | 8 |
+| lata | 83.3% | 90.9% | 87.0% | 11 |
+| no_reciclable | 45.5% | 62.5% | 52.6% | 8 |
+| organico | 95.0% | 70.4% | 80.9% | 27 |
+| papel | 100.0% | 55.0% | 71.0% | 20 |
+| tetrapak | 82.8% | 100.0% | 90.6% | 24 |
+
+</details>
 
 ### Análisis de errores de confusión
 
