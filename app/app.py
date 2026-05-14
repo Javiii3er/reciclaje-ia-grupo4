@@ -565,8 +565,12 @@ elif "VIDEO" in mode:
         if ctx.state.playing:
             deadline = time.time() + 21600
             while ctx.state.playing and time.time() < deadline:
+                proc = ctx.video_processor
+                if proc is None:
+                    time.sleep(0.03)
+                    continue
                 try:
-                    rd        = ctx.video_processor.result_queue.get(timeout=0.1)
+                    rd        = proc.result_queue.get(timeout=0.1)
                     conf      = rd.get('confianza', 0)
                     clase     = rd.get('clase', '')
                     dudoso    = _es_dudoso(clase, conf)
