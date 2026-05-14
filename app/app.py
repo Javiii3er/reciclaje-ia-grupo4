@@ -275,14 +275,9 @@ html, body, [class*="st-"] {
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.badge-amarillo { background: #854d0e; color: #fde68a !important; }
-.badge-azul     { background: #1d4ed8; color: #bfdbfe !important; }
-.badge-celeste  { background: #0e4f6b; color: #a5f3fc !important; }
-.badge-gris     { background: #374151; color: #d1d5db !important; }
-.badge-naranja  { background: #7c2d12; color: #fed7aa !important; }
+.badge-blanco   { background: #e2e8f0; color: #1e293b !important; border: 1px solid #94a3b8; }
 .badge-verde    { background: #065f46; color: #6ee7b7 !important; }
 .badge-negro    { background: #111827; color: #9ca3af !important; border: 1px solid #374151; }
-.badge-rojo     { background: #7f1d1d; color: #fca5a5 !important; }
 
 /* ── BOTONES ─────────────────────────────────────────────────────────────── */
 button {
@@ -382,14 +377,9 @@ def _titulo_clase(clase: str) -> str:
 
 # ── PROCESADOR WEBRTC ─────────────────────────────────────────────────────────
 _COLOR_BGR = {
-    'Amarillo': (0,  215, 255),
-    'Azul':     (255,  80,   0),
-    'Celeste':  (210, 180,   0),
-    'Gris':     (160, 160, 160),
-    'Naranja':  (0,  140, 255),
-    'Verde':    (0,  200,  80),
-    'Rojo':     (0,   60, 220),
-    'Negro':    (50,  50,  50),
+    'Blanco': (220, 220, 220),
+    'Verde':  (0,   200,  80),
+    'Negro':  (50,   50,  50),
 }
 
 class ReciclajeProcessor(VideoProcessorBase):
@@ -721,14 +711,9 @@ st.markdown('</div>', unsafe_allow_html=True)  # cierre work-panel
 st.markdown('<hr class="footer-divider">', unsafe_allow_html=True)
 st.markdown('<div class="footer-title">Guía de Contenedores — Normativa AGG 164-2021 · MARN Guatemala</div>', unsafe_allow_html=True)
 st.markdown("""
-<div class="badges-grid">
-    <span class="sidebar-badge badge-amarillo">🟡 Amarillo — Papel / Cartón</span>
-    <span class="sidebar-badge badge-azul">🔵 Azul — Plástico</span>
-    <span class="sidebar-badge badge-celeste">🔷 Celeste — Vidrio</span>
-    <span class="sidebar-badge badge-gris">⚫ Gris — Metal</span>
-    <span class="sidebar-badge badge-naranja">🟠 Naranja — Tetra Pak</span>
-    <span class="sidebar-badge badge-verde">🟢 Verde — Orgánicos</span>
-    <span class="sidebar-badge badge-negro">⬛ Negro — No reciclable</span>
-    <span class="sidebar-badge badge-rojo">🔴 Rojo — Electrónicos</span>
+<div class="badges-grid" style="grid-template-columns: repeat(3, 1fr);">
+    <span class="sidebar-badge badge-blanco">⬜ Blanco — Reciclables (Plástico, Vidrio, Metal, Papel, Cartón, Tetra Pak)</span>
+    <span class="sidebar-badge badge-verde">🟢 Verde — Orgánicos (restos de comida, jardín)</span>
+    <span class="sidebar-badge badge-negro">⬛ Negro — No reciclable · Electrónicos (punto limpio)</span>
 </div>
 """, unsafe_allow_html=True)

@@ -110,15 +110,15 @@ Colores alineados con el **Acuerdo Gubernativo 164-2021** (MARN Guatemala) y su 
 
 | Clase | Categoría | Recipiente | Consejo |
 |-------|-----------|------------|---------|
-| `lata` | Metal | ⚫ Gris | Enjuagar y aplastar antes de depositar |
-| `botella_pet` | Plástico | 🔵 Azul | Quitar tapón y aplastar |
-| `botella_vidrio` | Vidrio | 🔷 Celeste | No romper, depositar entero |
-| `papel` | Papel | 🟡 Amarillo | Mantener seco y limpio |
-| `carton` | Papel | 🟡 Amarillo | Doblar y atar si es grande |
-| `bolsa_plastica` | Plástico | 🔵 Azul | Vaciar completamente |
-| `tetrapak` | Mixto | 🟠 Naranja | Enjuagar y aplastar |
+| `lata` | Metal | ⬜ Blanco | Enjuagar y aplastar antes de depositar |
+| `botella_pet` | Plástico | ⬜ Blanco | Quitar tapón y aplastar |
+| `botella_vidrio` | Vidrio | ⬜ Blanco | No romper, depositar entero |
+| `papel` | Papel | ⬜ Blanco | Mantener seco y limpio |
+| `carton` | Papel | ⬜ Blanco | Doblar y atar si es grande |
+| `bolsa_plastica` | Plástico | ⬜ Blanco | Vaciar completamente |
+| `tetrapak` | Mixto | 	⬜ Blanco | Enjuagar y aplastar |
 | `organico` | Orgánico | 🟢 Verde | Para compostaje o biogás |
-| `electronicos_pequenos` | Electrónico | 🔴 Rojo | Llevar a punto limpio autorizado |
+| `electronicos_pequenos` | Electrónico | ⬛ Negro  | Llevar a punto limpio autorizado |
 | `no_reciclable` | Otros | ⬛ Negro | Depositar en basura general |
 
 ---

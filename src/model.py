@@ -22,17 +22,20 @@ CLASSES = [
 
 # Colores alineados con AGG 164-2021 y Reforma AGG 184-2023 (MARN Guatemala)
 # Última actualización: 11 de mayo de 2026
+# Colores alineados con AGG 164-2021 (MARN Guatemala): 3 categorías oficiales
+# Verde → Orgánicos | Blanco → Reciclables | Negro → No reciclables / especiales
+# Última actualización: 14 de mayo de 2026
 COLOR_MAP = {
-    'lata':                 ('Metal',       'Gris',     '⚫', 'Enjuagar y aplastar antes de depositar.'),
-    'botella_pet':          ('Plástico',    'Azul',     '🔵', 'Quitar el tapón y aplastar la botella.'),
-    'botella_vidrio':       ('Vidrio',      'Celeste',  '🔷', 'No romper. Depositar entero en el recipiente.'),
-    'papel':                ('Papel',       'Amarillo', '🟡', 'Mantener seco y limpio. No mezclar con papel sucio.'),
-    'carton':               ('Papel',       'Amarillo', '🟡', 'Doblar y atar si es de gran tamaño.'),
-    'bolsa_plastica':       ('Plástico',    'Azul',     '🔵', 'Vaciar completamente antes de depositar.'),
-    'tetrapak':             ('Mixto',       'Naranja',  '🟠', 'Enjuagar, aplastar y retirar la pajilla.'),
-    'organico':             ('Orgánico',    'Verde',    '🟢', 'Ideal para compostaje casero o biogás.'),
-    'electronicos_pequenos':('Electrónico', 'Rojo',     '🔴', 'Llevar a un punto limpio autorizado. No tirar a la basura general.'),
-    'no_reciclable':        ('Otros',       'Negro',    '⬛', 'Depositar en la basura general.'),
+    'lata':                 ('Metal',       'Blanco', '⬜', 'Enjuagar y aplastar antes de depositar.'),
+    'botella_pet':          ('Plástico',    'Blanco', '⬜', 'Quitar el tapón y aplastar la botella.'),
+    'botella_vidrio':       ('Vidrio',      'Blanco', '⬜', 'No romper. Depositar entero en el recipiente.'),
+    'papel':                ('Papel',       'Blanco', '⬜', 'Mantener seco y limpio. No mezclar con papel sucio.'),
+    'carton':               ('Papel',       'Blanco', '⬜', 'Doblar y atar si es de gran tamaño.'),
+    'bolsa_plastica':       ('Plástico',    'Blanco', '⬜', 'Vaciar completamente antes de depositar.'),
+    'tetrapak':             ('Mixto',       'Blanco', '⬜', 'Enjuagar, aplastar y retirar la pajilla.'),
+    'organico':             ('Orgánico',    'Verde',  '🟢', 'Ideal para compostaje casero o biogás.'),
+    'electronicos_pequenos':('Electrónico', 'Negro',  '⬛', 'Llevar a un punto limpio autorizado. No tirar a la basura general.'),
+    'no_reciclable':        ('Otros',       'Negro',  '⬛', 'Depositar en la basura general.'),
 }
 
 # Umbrales de confianza por clase calibrados por volumen de muestras y confusiones conocidas.
