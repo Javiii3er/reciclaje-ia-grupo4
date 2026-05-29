@@ -1,10 +1,4 @@
 Video de demostración — Reciclaje Inteligente | Grupo #4 | UMG 2026
 
-Enlace: (disponible semana del 25–29 de mayo de 2026)
+Enlace: https://drive.google.com/file/d/1wZTziPbpRXhf7BfGSk-ae1GzeSWjc-CF/view?usp=drive_link 
 
-Duración estimada: 3–5 minutos
-Contenido:
-- Demostración en vivo de la app Streamlit con objetos físicos reales
-- Clasificación de mínimo 5 tipos de residuos distintos
-- Análisis de al menos 2 casos difíciles o erróneos del modelo
-- Conclusiones sobre las limitaciones del sistema
