@@ -257,7 +257,7 @@ reciclaje-ia-grupo4/
 
 ## Video de demostración
 
-> Enlace disponible la semana del 25 al 29 de mayo de 2026.
+>https://drive.google.com/file/d/1wZTziPbpRXhf7BfGSk-ae1GzeSWjc-CF/view?usp=drive_link 
 
 ---
 
